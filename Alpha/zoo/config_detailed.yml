@@ -1,0 +1,64 @@
+# This example shows more configurable fields comparing to the minimal "config.yml"
+# You can use "nnictl create --config config_detailed.yml" to launch this experiment.
+# If you see an error message saying "port 8080 is used", use "nnictl stop --all" to stop previous experiments.
+
+experimentName: YoloV5x           # An optional name to help you distinguish experiments.
+
+# Hyper-parameter search space can either be configured here or in a seperate file.
+# "config.yml" shows how to specify a seperate search space file.
+# The common schema of search space is documented here:
+#   https://nni.readthedocs.io/en/stable/Tutorial/SearchSpaceSpec.html
+searchSpace:
+  lr0:
+    _type: uniform
+    _value: [1e-5, 1e-1]
+  weight_decay:
+    _type: uniform
+    _value: [5e-4, 1.0]
+  optimizer:
+    _type: choice
+    _value: ['SGD', 'adam', 'SGD', 'SGD']
+  momentum:
+    _type: uniform
+    _value: [0.01, 1]
+  warmup:
+    _type: randint
+    _value: [1, 10]
+  iou_t:
+    _type: quniform
+    _value: [0.1,0.7,0.1]
+  hsv_s:
+    _type: quniform
+    _value: [0, 0.9, 0.1]
+  hsv_v:
+    _type: quniform
+    _value: [0, 0.9, 0.1]
+  translate:
+    _type: quniform
+    _value: [0, 0.9,0.1]
+  scale:
+    _type: quniform
+    _value: [0,0.9, 0.1]
+  fl_gamma:
+    _type: quniform
+    _value: [0, 3, 0.1]
+trialCommand: bash run_nni.sh  # The command to launch a trial. NOTE: change "python3" to "python" if you are using Windows.
+trialCodeDirectory: ..           # The path of trial code. By default it's ".", which means the same directory of this config file.
+trialGpuNumber: 8               # How many GPUs should each trial use. CUDA is required when it's greater than zero.
+
+trialConcurrency: 1             # Run 4 trials concurrently.
+maxTrialNumber: 5000            # Generate at most 10 trials.
+
+tuner:                          # Configure the tuning algorithm.
+  name: TPE                     # Supported algorithms: TPE, Random, Anneal, Evolution, GridSearch, GPTuner, PBTTuner, etc.
+                                #   Full list:  https://nni.readthedocs.io/en/latest/Tuner/BuiltinTuner.html
+  classArgs:                    # Algorithm specific arguments. See the tuner's doc for details.
+    optimize_mode: maximize     #   "minimize" or "maximize"
+# Configure the training platform.
+# Supported platforms: local, remote, openpai, aml, kubeflow, kubernetes, adl.
+# You can find config template of some platforms in this directory, and others in mnist-pytorch example.
+trainingService:
+  platform: local
+  useActiveGpu: false           # NOTE: Use "true" if you are using an OS with graphical interface (e.g. Windows 10, Ubuntu desktop)
+                                #   Reason and details:  https://nni.readthedocs.io/en/latest/reference/experiment_config.html#useactivegpu
+experimentWorkingDirectory: /workspace/volume/yl-saved-ckpts/nni/yolov5x
